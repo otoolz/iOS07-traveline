@@ -99,7 +99,7 @@ final class TimelineWritingVC: UIViewController {
     }
     
     @objc private func selectLocationButtonTapped() {
-        let locationSearchVC = LocationSearchVC()
+        let locationSearchVC = LocationSearchVC(viewModel: viewModel)
         locationSearchVC.delegate = self
         
         present(locationSearchVC, animated: true)
@@ -194,8 +194,6 @@ private extension TimelineWritingVC {
         selectImageButton.cancelButton.addTarget(self, action: #selector(imageButtonCancelTapped), for: .touchUpInside)
         selectLocation.cancelButton.addTarget(self, action: #selector(locationButtonCancelTapped), for: .touchUpInside)
         
-        
-
         selectImageButton.addGestureRecognizer(imageTapGesture)
         selectTime.addGestureRecognizer(timeTapGesture)
         selectLocation.addGestureRecognizer(locationTapGesture)
@@ -348,6 +346,7 @@ extension TimelineWritingVC: TLNavigationBarDelegate {
     func rightButtonDidTapped() {
         // TODO: 생성할 타임라인 정보 넘겨주기 구현
         viewModel.sendAction(.tapCompleteButton(TimelineDetailInfo.empty))
+        self.navigationController?.popViewController(animated: true)
     }
 }
 

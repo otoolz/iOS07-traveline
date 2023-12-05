@@ -36,4 +36,13 @@ final class TimelineDetailRepositoryImpl: TimelineDetailRepository {
         return timelineDetailResponseDTO.toDomain()
     }
     
+    func requestLocationSearchResults(with data: PlaceRequest) async throws -> PlaceList {
+        let placeListReqeustDTO = try await network.request(
+            endPoint: TimelineDetailEndPoint.requestLocationList(data.toDTO()),
+            type: PlaceListResponseDTO.self
+        )
+        
+        return placeListReqeustDTO.map { $0.toDomain() }
+    }
+    
 }

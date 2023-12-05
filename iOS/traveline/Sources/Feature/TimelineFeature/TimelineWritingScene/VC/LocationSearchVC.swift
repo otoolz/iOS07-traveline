@@ -6,6 +6,7 @@
 //  Copyright © 2023 traveline. All rights reserved.
 //
 
+import Combine
 import UIKit
 
 protocol LocationSearchDelegate: AnyObject {
@@ -59,17 +60,22 @@ final class LocationSearchVC: UIViewController {
     
     // MARK: - Properties
     
-    // TODO: - 임시 결과값으로 추후에는 빈 배열
-    private var results: [String] = ["제주도 제주시", "제주도 서귀포시", "제주도 뭐뭐시"]
+    private var cancellables: Set<AnyCancellable> = .init()
+    private var results: [String] = []
+    private var viewModel: TimelineWritingViewModel
     weak var delegate: LocationSearchDelegate?
     
-    // MARK: - Life Cycle
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
+    init(viewModel: TimelineWritingViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
         
         setupAttributes()
         setupLayout()
+        bind()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
     
     // MARK: - Functions
@@ -140,6 +146,18 @@ private extension LocationSearchVC {
             
         ])
     }
+    
+    private func bind() {
+        viewModel.$state
+            .map(\.locationList)
+            .removeDuplicates()
+            .withUnretained(self)
+            .sink { owner, list in
+                owner.results = list
+                owner.tableView.reloadData()
+            }
+            .store(in: &cancellables)
+    }
 }
 
 // MARK: - UISearchBarDelegate extension
@@ -149,7 +167,10 @@ extension LocationSearchVC: UISearchBarDelegate {
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         guard let text = searchBar.text,
               !text.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-        // search result logic
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        viewModel.sendAction(.locationSearchTextDidChange(searchText))
     }
 }
 
@@ -185,9 +206,3 @@ extension LocationSearchVC: UITableViewDataSource {
     
 }
 
-@available(iOS 17, *)
-#Preview("LocationSearchVC") {
-    let vc = LocationSearchVC()
-    let homeNV = UINavigationController(rootViewController: vc)
-    return homeNV
-}

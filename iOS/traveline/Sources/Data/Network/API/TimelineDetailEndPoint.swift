@@ -11,6 +11,7 @@ import Foundation
 enum TimelineDetailEndPoint {
     case specificTimeline(String)
     case createTimeline(TimelineDetailRequestDTO)
+    case requestLocationList(PlaceRequestDTO)
 }
 
 extension TimelineDetailEndPoint: EndPoint {
@@ -22,12 +23,15 @@ extension TimelineDetailEndPoint: EndPoint {
             
         case .createTimeline:
             return "/timelines"
+            
+        case .requestLocationList(let place):
+            return "/timelines/map?place=\(place.place)"
         }
     }
     
     var httpMethod: HTTPMethod {
         switch self {
-        case .specificTimeline:
+        case .specificTimeline, .requestLocationList:
             return .GET
             
         case .createTimeline:
@@ -37,7 +41,7 @@ extension TimelineDetailEndPoint: EndPoint {
     
     var body: Encodable? {
         switch self {
-        case .specificTimeline:
+        case .specificTimeline, .requestLocationList:
             return nil
             
         case .createTimeline(let timelineDetail):
@@ -46,6 +50,12 @@ extension TimelineDetailEndPoint: EndPoint {
     }
     
     var header: [String: String] {
-        return [:]
+        switch self {
+        case .specificTimeline, .requestLocationList:
+            return HeaderType.json.value
+            
+        case .createTimeline:
+            return HeaderType.multipart.value
+        }
     }
 }

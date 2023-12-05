@@ -15,6 +15,7 @@ enum TimelineWritingAction: BaseAction {
     case timeDidChange(String)
     case placeDidChange(String)
     case imageDidChange(Data?)
+    case locationSearchTextDidChange(String)
     case tapCompleteButton(TimelineDetailInfo)
     
 }
@@ -26,10 +27,13 @@ enum TimelineWritingSideEffect: BaseSideEffect {
     case updateTimeState
     case updateImageState
     case updatePlaceState
+    case requestLocationList(PlaceList)
+    case error(String)
 }
 
 struct TimelineWritingState: BaseState {
     var isCompletable: Bool = false
+    var locationList: [String] = []
 }
 
 final class TimelineWritingViewModel: BaseViewModel<TimelineWritingAction, TimelineWritingSideEffect, TimelineWritingState> {
@@ -76,6 +80,9 @@ final class TimelineWritingViewModel: BaseViewModel<TimelineWritingAction, Timel
             
         case .imageDidChange(let imageData):
             return updateImageState(imageData)
+            
+        case .locationSearchTextDidChange(let text):
+            return requestLocationList(with: text)
         }
     }
     
@@ -88,6 +95,9 @@ final class TimelineWritingViewModel: BaseViewModel<TimelineWritingAction, Timel
              .updatePlaceState:
             newState.isCompletable = completeButtonState()
             
+        case .requestLocationList(let placeList):
+            newState.locationList = placeList.map { $0.location }
+            
         case .updateTimeState:
             break
             
@@ -95,6 +105,9 @@ final class TimelineWritingViewModel: BaseViewModel<TimelineWritingAction, Timel
             break
             
         case .createTimeline:
+            break
+            
+        case .error:
             break
         }
         
@@ -139,5 +152,16 @@ private extension TimelineWritingViewModel {
     func updatePlaceState(_ place: String) -> SideEffectPublisher {
         timelineDetailRequest.place = place
         return .just(.updatePlaceState)
+    }
+    
+    func requestLocationList(with text: String) -> SideEffectPublisher {
+        return useCase.requestLocationSearchList(with: text)
+            .map { list in
+                return .requestLocationList(list)
+            }
+            .catch { _ in
+                return Just(.error("failed request location list"))
+            }
+            .eraseToAnyPublisher()
     }
 }

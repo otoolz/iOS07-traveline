@@ -9,6 +9,7 @@
 import Foundation
 
 final class TimelineDetailRepositoryMock: TimelineDetailRepository {
+    
     func createTimelineDetail(with timelineRequest: TimelineDetailRequest) async throws -> TimelineDetailInfo {
         try await Task.sleep(nanoseconds: 1_000_000_000)
         
@@ -21,6 +22,10 @@ final class TimelineDetailRepositoryMock: TimelineDetailRepository {
         
         let mockData = TimelineDetailInfo.sample
         return mockData
+    }
+    
+    func requestLocationSearchResults(with data: PlaceRequest) async throws -> PlaceList {
+        return []
     }
     
 }
