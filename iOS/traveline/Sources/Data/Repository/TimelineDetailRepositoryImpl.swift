@@ -18,8 +18,9 @@ final class TimelineDetailRepositoryImpl: TimelineDetailRepository {
     
     func fetchTimelineDetailInfo(id: String) async throws -> TimelineDetailInfo {
         
+        let testId = "01d97f2b-515c-4a44-91b8-dfa48d806b00"
         let timelineDetailResponseDTO = try await network.request(
-            endPoint: PostingEndPoint.specificPosting,
+            endPoint: TimelineDetailEndPoint.specificTimeline(testId),
             type: TimelineDetailResponseDTO.self
         )
         
